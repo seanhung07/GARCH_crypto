@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/GARCH_crypto/static/css/main.e6c13ad2.css",
+    "main.js": "/GARCH_crypto/static/js/main.a271d517.js",
+    "static/js/453.adea7ce5.chunk.js": "/GARCH_crypto/static/js/453.adea7ce5.chunk.js",
+    "index.html": "/GARCH_crypto/index.html",
+    "main.e6c13ad2.css.map": "/GARCH_crypto/static/css/main.e6c13ad2.css.map",
+    "main.a271d517.js.map": "/GARCH_crypto/static/js/main.a271d517.js.map",
+    "453.adea7ce5.chunk.js.map": "/GARCH_crypto/static/js/453.adea7ce5.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.a271d517.js"
+  ]
+}
