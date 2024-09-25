@@ -53,7 +53,6 @@ export function calculateLogReturns(prices) {
   }
   
 // GARCH(1,1) model implementation
-// GARCH(1,1) model implementation
 export function garch(logReturns, omega = 0.00001, alpha = 0.1, beta = 0.85) {
     const variances = [];
     const epsilonSquared = [];
