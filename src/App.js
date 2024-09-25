@@ -28,14 +28,9 @@ import {
   Paper,
   TableSortLabel,
   LinearProgress,
-  Popover,
   Container,
 } from "@mui/material";
 import "chartjs-adapter-date-fns";
-import {
-  CandlestickController,
-  CandlestickElement,
-} from "chartjs-chart-financial";
 
 Chart.register(
   CategoryScale,
@@ -66,8 +61,6 @@ function App() {
     direction: "asc",
   });
   const [loading, setLoading] = useState(true);
-  const [hoverSymbol, setHoverSymbol] = useState(null);
-  const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
     const fetchAllSymbols = async () => {
@@ -81,7 +74,6 @@ function App() {
     fetchAllSymbols();
   }, []);
 
-  // Fetch volatility data with throttling
   const fetchVolatilityData = async (allSymbols) => {
     const symbolVolatilityData = [];
     const startTime = Date.now();
@@ -91,7 +83,7 @@ function App() {
       const prices = await fetchOHLCV(symbol);
       if (prices.length < 2) continue; // Skip if not enough data
       const closePrices = prices.map((candle) => candle.close);
-      const logReturns = calculateLogReturns(closePrices); // Calculate log returns
+      const logReturns = calculateLogReturns(closePrices);
       const currentVolatility = Math.sqrt(
         logReturns.reduce((acc, r) => acc + r * r, 0) / logReturns.length
       );
@@ -101,7 +93,9 @@ function App() {
         symbol,
         currentVolatility,
         predictedVolatility,
+        ohlcData: prices, // Store OHLC data for the K-line chart
       });
+
       setVolatilityData([...symbolVolatilityData]);
       const progressPercent = ((i + 1) / allSymbols.length) * 100;
       setProgress(progressPercent);
@@ -118,6 +112,12 @@ function App() {
     setLoading(false);
   };
 
+  // const handleSymbolChange = async (selectedOption) => {
+  //   setSelectedSymbol(selectedOption);
+
+  //   const prices = await fetchOHLCV(selectedOption.value);
+  //   setOhlcData(prices); // Store OHLC data for K-line chart
+  // };
   const handleSymbolChange = async (selectedOption) => {
     setSelectedSymbol(selectedOption);
 
@@ -143,19 +143,6 @@ function App() {
     setvolatilitySeries(volatilitySeries);
   };
 
-  const handlePopoverOpen = async (event, symbol) => {
-    setHoverSymbol(symbol);
-    setAnchorEl(event.currentTarget);
-    const prices = await fetchOHLCV(symbol);
-    setOhlcData(prices);
-  };
-
-  const handlePopoverClose = () => {
-    setHoverSymbol(null);
-    setAnchorEl(null);
-  };
-
-  const open = Boolean(anchorEl);
 
   const handleSort = (key) => {
     let direction = "asc";
@@ -262,8 +249,6 @@ function App() {
             )}
           </div>
         )}
-
-        {/* Volatility Data Table */}
         <h2>Volatility for All Symbols</h2>
         <TableContainer component={Paper}>
           <Table>
@@ -296,80 +281,51 @@ function App() {
                     Predicted Volatility (GARCH)
                   </TableSortLabel>
                 </TableCell>
+                <TableCell>K-line Chart</TableCell> {/* New Column for K-line */}
               </TableRow>
             </TableHead>
             <TableBody>
               {volatilityData.map((data, index) => (
                 <TableRow key={index}>
-                  <TableCell
-                    onMouseEnter={(event) =>
-                      handlePopoverOpen(event, data.symbol)
-                    } 
-                    onMouseLeave={handlePopoverClose}
-                  >
-                    {data.symbol}
-                  </TableCell>
+                  <TableCell>{data.symbol}</TableCell>
                   <TableCell>{data.currentVolatility.toFixed(5)}</TableCell>
                   <TableCell>{data.predictedVolatility.toFixed(5)}</TableCell>
+                  <TableCell>
+                    <Line
+                      data={{
+                        labels:
+                          data.ohlcData.map((candle) => new Date(candle.time/ 1000)),
+                        datasets: [
+                          {
+                            label: "Close Prices",
+                            data:
+                              data.ohlcData.map((candle) => candle.close),
+                            borderColor: "rgba(255, 99, 132, 1)",
+                            fill: false,
+                          },
+                        ],
+                      }}
+                      options={{
+                        scales: {
+                          x: {
+                            type: "time",
+                            time: {
+                              unit: "minute",
+                            },
+                            ticks: {
+                              autoSkip: true,
+                              maxTicksLimit: 10,
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
-
-        {/* Popover with K-line chart */}
-        <Popover
-          open={open}
-          anchorEl={anchorEl}
-          onClose={handlePopoverClose}
-          anchorOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "left",
-          }}
-        >
-          {hoverSymbol && (
-            <div style={{ padding: "10px", width: "300px" }}>
-              <h3>K-line for {hoverSymbol}</h3>
-              <Line
-                data={{
-                  labels: sampleData(
-                    ohlcData.map((candle) => new Date(candle.time)),
-                    5
-                  ), // Sample time labels
-                  datasets: [
-                    {
-                      label: "Close Prices",
-                      data: sampleData(
-                        ohlcData.map((candle) => candle.close),
-                        5
-                      ), // Sample close prices
-                      borderColor: "rgba(255, 99, 132, 1)",
-                      fill: false,
-                    },
-                  ],
-                }}
-                options={{
-                  scales: {
-                    x: {
-                      type: "time",
-                      time: {
-                        unit: "minute",
-                      },
-                      ticks: {
-                        autoSkip: true,
-                        maxTicksLimit: 10,
-                      },
-                    },
-                  },
-                }}
-              />
-            </div>
-          )}
-        </Popover>
       </div>
     </Container>
   );

@@ -1,8 +1,8 @@
 {
+  "homepage": "http://seanhung07.github.io/GARCH_crypto",
   "name": "garch_volatility",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://seanhung07.github.io/GARCH_crypto",
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
